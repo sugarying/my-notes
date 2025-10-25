@@ -1,4 +1,4 @@
---- 
+---
 title: "Flow Matching 笔记"
 date: 2025-10-24
 tags: [flow-matching, diffusion, generative-models]
@@ -9,7 +9,73 @@ tags: [flow-matching, diffusion, generative-models]
 **日期**：2025-10-24  
 **主题**：Flow matching 的目标 / 训练目标与数值采样权衡 / 实践要点
 
+## 前置知识
+
+**通量与散度**
+
+- 通量是单位时间内通过某个曲面的量 $\iint_{\Sigma} \vec{A} \cdot \vec{n} d S$
+
+- 散度：可用于表征空间各点矢量场发散的强弱程度（在通量的基础上去做一个极限）
+
+  $\operatorname{div} \vec{A}(M)=\lim _{\Omega \rightarrow M} \frac{1}{V} \oiint_{\Sigma} \vec{A} \cdot \vec{n} d S$
+
+  $\operatorname{div} \mathbf{F}=\nabla \cdot \mathbf{F}=\frac{\partial F_{x}}{\partial x}+\frac{\partial F_{y}}{\partial y}+\frac{\partial F_{z}}{\partial z} \operatorname{div}=\sum_{i=1}^{d} \frac{\partial}{\partial x^{i}}$ (对函数的变量求偏导再做一个累加)
+
+**概率密度函数的变量变换**  $z\sim \pi(z)$  $f : x=f(z) \quad z = f^{-1}(x)$
+
+$p(x)=\pi(z)\left|\frac{d z}{d x}\right|=\pi\left(f^{-1}(x)\right)\left|\frac{d f^{-1}}{d x}\right|=\pi\left(f^{-1}(x)\right)\left|\left(f^{-1}\right)^{\prime}(x)\right|$
+
+DDPM: $X_t = \sqrt{\bar{\alpha} }x_0 + \sqrt{1-\bar{\alpha} }\varepsilon\sim N(0,1) $
+
+$p(x_t)\sim N(\sqrt{\bar{\alpha_t} }x_0, 1-\bar{\alpha_t} 1)$
+
+$x_t= f(\varepsilon) \quad \varepsilon=f^{-1}(x_t) $
+
+
+
+**flow的基本概念**
+
+建模了两个分布之间的联系
+
+![image-20251024162955682](C:\Users\admin\my-notes\notes\assets\image-20251024162955682.png)
+
+$\underline{X}_{t}=(\underbrace{f_{t} \circ f_{t-1} \circ \cdots \cdot f_{1}}_{\phi_{t} / \psi_{t}})(\left.x_{0}\right)$    将$x_0$的分布转到$x_t$的分布
+
+将t进行归一化，变成了0到1之间，并且认识它是连续的
+
+
+
+**Continuous normalizing flows (ODE)**
+
+$\begin{aligned}
+\frac{d}{d t} \phi_{t}(x) & =v_{t}\left(\phi_{t}(x)\right) \\
+\phi_{0}(x) & =x
+\end{aligned}$   通过欧拉方法采样我们的图像
+
+Flow、time-dependent vector field、 probability density path
+
+![image-20251024165104694](C:\Users\admin\my-notes\notes\assets\image-20251024165104694.png)
+
+**Push**-forward Equation
+
+$p_{t}=\left[\phi_{t}\right]_{*} p_{0}=P_{0}\left(\phi_{t}^{-1}(x)\right)\left|\left(\phi^{-1}\right)^{\prime}(x)\right|$  用$\phi_{t}$表示两个分布之间的关系（将初始分布变成t时刻的分布）
+
+**Continuity** Equation
+
+确保一个向量场$v_t$（箭头）可生成概率路径$p_t$
+
+$\frac{d}{d t} p_{t}(x)+\operatorname{div}\left(p_{t}(x) v_{t}(x)\right)=0$
+
+
+
+
+
+
+
+
+
 ## 摘要
+
 Flow Matching 的目标是学习一个时间依赖速度场 \(v_\theta(x,t)\)，使得 ODE
 \[
 \frac{dx}{dt} = v_\theta(x,t)
